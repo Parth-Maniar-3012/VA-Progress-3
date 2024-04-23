@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Area Chart with D3.js</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        
+        .AreaChart {
+            width: 100%;
+            height: 300px;
+        }
+                a {
+          text-decoration: none;
+          display: inline-block;
+          padding: 8px 16px;
+        }
+
+        a:hover {
+          background-color: #ddd;
+          color: black;
+        }
+
+        .previous {
+          background-color: #f1f1f1;
+          color: black;
+        }
+
+        .next {
+          background-color: #04AA6D;
+          color: white;
+        }
+
+        .round {
+          border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+    <h2>Purple Tooting Tout</h2>
+    <div class="AreaChart"></div>
+
+    <script>
+        
+        const data = [
+            {year: 1986, count: 1},
+            {year: 1995, count: 2},
+            {year: 2002, count: 1},
+            {year: 2009, count: 2},
+            {year: 2010, count: 4},
+            {year: 2011, count: 5},
+            {year: 2012, count: 13},
+            {year: 2013, count: 11},
+            {year: 2014, count: 7},
+            {year: 2015, count: 1},
+            {year: 2016, count: 19},
+            {year: 2017, count: 4},
+            {year: 2018, count: 1},
+      ];
+
+        // Set up SVG container
+        const svgWidth = 800;
+        const svgHeight = 300;
+        const margin = { top: 20, right: 20, bottom: 30, left: 50 };
+        const width = svgWidth - margin.left - margin.right;
+        const height = svgHeight - margin.top - margin.bottom;
+
+        const svg = d3.select('.AreaChart')
+            .append('svg')
+            .attr('width', svgWidth)
+            .attr('height', svgHeight)
+            .append('g')
+            .attr('transform', `translate(${margin.left},${margin.top})`);
+
+        // Define scales
+        const xScale = d3.scaleLinear()
+            .domain(d3.extent(data, d => d.year))
+            .range([0, width]);
+
+        const yScale = d3.scaleLinear()
+            .domain([0, d3.max(data, d => d.count)])
+            .range([height, 0]);
+
+        // Define the area
+        const area = d3.area()
+            .x(d => xScale(d.year))
+            .y0(height)
+            .y1(d => yScale(d.count));
+
+        // Draw the area
+        svg.append('path')
+            .datum(data)
+            .attr('fill', 'orange')
+            .attr('d', area);
+
+        // Draw the x axis
+        svg.append('g')
+            .attr('transform', `translate(0,${height})`)
+            .call(d3.axisBottom(xScale));
+
+        // Draw the y axis
+        svg.append('g')
+            .call(d3.axisLeft(yScale));
+
+        svg.selectAll(".text")
+        .data(data)
+        .enter().append("text")
+        .attr("x", d => xScale(d.year))
+        .attr("y", d => yScale(d.count) - 5) // Adjust position slightly above the point
+        .attr("text-anchor", "middle")
+        .text(d => d.count);
+
+
+    </script>
+
+    </br>
+    </br>
+    <a href="Pinkfnch.html" class="previous">&laquo; Previous</a>
+    <a href="Qax.html" class="next">Next &raquo;</a>
+    
+   
+</body>
+</html>

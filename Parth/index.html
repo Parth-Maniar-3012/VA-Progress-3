@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Parth Maniar</title>
+    <script src="d3.v6.min.js"></script>
+    <style>
+        h1 {font-size:20px;text-align:left;margin-top:20px}
+        .bar { fill: rgb(250, 61, 8); }
+        .graph { display: inline-block; vertical-align: top; }
+    </style>
+</head>
+<body>
+    <h1>Parth Maniar Progress 3</h1>
+    <div id="filters">
+        <label for="birdName">English Name:</label>
+        <select id="birdName"></select>
+    </div>
+    <div id="graphs">
+        <div class="graph" id="qualityGraph"></div>
+        <div class="graph" id="yearGraph"></div>
+    </div>
+    <script>
+        var w = 500;
+        var h = 400;
+        var margin = { top: 60, right: 15, bottom: 60, left: 60 };
+
+        function getYear(date) {
+            var z = date.split("-");
+            var year = z[2].length === 4 ? z[2] : z[0];
+            return +year;
+        }
+
+        function updateGraphs(birdName) {
+            d3.csv("AllBirdsv4.csv").then(function(rows) {
+                var filteredRows = rows.filter(d => d.English_name === birdName);
+
+                // Update Quality Distribution graph
+                var qualityCount = {
+                    "A": 0,
+                    "B": 0,
+                    "C": 0,
+                    "D": 0,
+                    "E": 0,
+                    "No Score": 0
+                };
+
+                filteredRows.forEach(function(row) {
+                    if (row.Quality in qualityCount) {
+                        qualityCount[row.Quality]++;
+                    } else {
+                        qualityCount["No Score"]++;
+                    }
+                });
+
+                var qualityData = Object.keys(qualityCount).map(key => ({ key, value: qualityCount[key] }));
+
+                var xScaleQuality = d3.scaleBand()
+                    .domain(qualityData.map(d => d.key)) 
+                    .range([0, w])
+                    .padding(0.1);
+
+                var yScaleQuality = d3.scaleLinear()
+                    .domain([0, d3.max(qualityData, d => d.value)]) 
+                    .range([h, 0]);
+
+                var svgQuality = d3.select("#qualityGraph").select("svg");
+
+                // Clear previous content
+                document.getElementById("qualityGraph").innerHTML = "";
+
+                svgQuality = d3.select("#qualityGraph") // Select again after removal
+                    .append("svg")
+                    .attr("width", w + margin.left + margin.right)
+                    .attr("height", h + margin.top + margin.bottom)
+                    .append("g")
+                    .attr("transform", `translate(${margin.left},${margin.top})`);
+
+                svgQuality.selectAll(".bar")
+                    .data(qualityData)
+                    .enter()
+                    .append("rect")
+                    .attr("class", "bar")
+                    .attr("x", d => xScaleQuality(d.key))
+                    .attr("y", d => yScaleQuality(d.value))
+                    .attr("width", xScaleQuality.bandwidth())
+                    .attr("height", d => h - yScaleQuality(d.value))
+                    .append("title")
+                    .text(d => d.key + ": " + d.value);
+
+                svgQuality.selectAll("text")
+                    .data(qualityData)
+                    .enter()
+                    .append("text")
+                    .text(function(d) { return d.value; })
+                    .attr("x", function(d) { return xScaleQuality(d.key) + xScaleQuality.bandwidth() / 2; })
+                    .attr("y", function(d) { return yScaleQuality(d.value) - 5; })
+                    .attr("text-anchor", "middle")
+                    .attr("font-family", "sans-serif")
+                    .attr("font-size", "13px")
+                    .attr("fill", "black");
+
+                svgQuality.append("g")
+                    .attr("transform", `translate(0,${h})`)
+                    .call(d3.axisBottom(xScaleQuality));
+
+                svgQuality.append("g")
+                    .call(d3.axisLeft(yScaleQuality));
+
+                svgQuality.append("text")
+                    .attr("x", w / 3)
+                    .attr("y", h + margin.bottom / 2)
+                    .attr("text-anchor", "middle")
+                    .text("Quality")
+                    .style("font-size", "14px");
+
+                svgQuality.append("text")
+                    .attr("transform", "rotate(-90)")
+                    .attr("x", -h / 2)
+                    .attr("y", -margin.left / 2)
+                    .attr("dy", "1em")
+                    .attr("text-anchor", "middle")
+                    .text("Count")
+                    .style("font-size", "14px");
+                
+                svgQuality.append("text")
+                    .attr("x", w / 2)
+                    .attr("y", -margin.top / 2)
+                    .attr("text-anchor", "middle")
+                    .style("font-size", "20px") 
+                    .text(birdName + " Quality Distribution");
+
+                // Update Rose-crested Blue Pipit per year graph
+                var yearData = d3.group(filteredRows, d => getYear(d.Date));
+
+                var svgYear = d3.select("#yearGraph").select("svg");
+
+                // Clear previous content
+                document.getElementById("yearGraph").innerHTML = "";
+
+                svgYear = d3.select("#yearGraph") // Select again after removal
+                    .append("svg")
+                    .attr("width", w + margin.left + margin.right)
+                    .attr("height", h + margin.top + margin.bottom)
+                    .append("g")
+                    .attr("transform", `translate(${margin.left},${margin.top})`);
+
+                var minYear = Math.floor(d3.min([...yearData.keys()]) / 5) * 5; // Round to nearest multiple of 5
+                var maxYear = Math.ceil(d3.max([...yearData.keys()]) / 5) * 5; // Round to nearest multiple of 5
+
+                var xScaleYear = d3.scaleLinear()
+                    .domain([minYear, maxYear]) // Use rounded min and max years
+                    .range([0, w]);
+
+                var yScaleYear = d3.scaleLinear()
+                    .domain([0, d3.max([...yearData.values()], d => d.length)]) 
+                    .range([h, 0]);
+
+                svgYear.selectAll(".bar")
+                    .data([...yearData.values()])
+                    .enter()
+                    .append("rect")
+                    .attr("class", "bar")
+                    .attr("x", (d, i) => xScaleYear([...yearData.keys()][i]))
+                    .attr("y", d => yScaleYear(d.length))
+                    .attr("width", w / [...yearData.keys()].length - 10) // Adjust the width of each bar
+                    .attr("height", d => h - yScaleYear(d.length))
+                    .append("title")
+                    .text((d, i) => "Year: " + [...yearData.keys()][i] + ", Count: " + d.length);
+
+                // Add count on top of each bar
+                svgYear.selectAll(".text")
+                    .data([...yearData.values()])
+                    .enter()
+                    .append("text")
+                    .text(function(d) { return d.length; })
+                    .attr("x", (d, i) => xScaleYear([...yearData.keys()][i]) + (w / [...yearData.keys()].length - 10) / 2) // Adjust the x position
+                    .attr("y", d => yScaleYear(d.length) - 5)
+                    .attr("text-anchor", "middle")
+                    .attr("font-family", "sans-serif")
+                    .attr("font-size", "13px")
+                    .attr("fill", "black");
+
+                svgYear.append("g")
+                    .attr("transform", `translate(0,${h})`)
+                    .call(d3.axisBottom(xScaleYear).tickFormat(d3.format("d")));
+
+                svgYear.append("g")
+                    .call(d3.axisLeft(yScaleYear));
+
+                svgYear.append("text")
+                    .attr("x", w / 2)
+                    .attr("y", h + margin.bottom / 2)
+                    .attr("text-anchor", "middle")
+                    .text("Year")
+                    .style("font-size", "14px");
+
+                svgYear.append("text")
+                    .attr("transform", "rotate(-90)")
+                    .attr("x", -h / 2)
+                    .attr("y", -margin.left / 2)
+                    .attr("dy", "1em")
+                    .attr("text-anchor", "middle")
+                    .text("Count")
+                    .style("font-size", "14px");
+
+                svgYear.append("text")
+                    .attr("x", w / 2)
+                    .attr("y", -margin.top / 2)
+                    .attr("text-anchor", "middle")
+                    .style("font-size", "20px") 
+                    .text(birdName + " per year");
+            });
+        }
+
+        // Populate dropdown with unique English names
+        d3.csv("AllBirdsv4.csv").then(function(rows) {
+            var uniqueNames = Array.from(new Set(rows.map(row => row.English_name)));
+            var dropdown = d3.select("#birdName");
+
+            dropdown.selectAll("option")
+                .data(uniqueNames)
+                .enter()
+                .append("option")
+                .attr("value", d => d)
+                .text(d => d);
+
+            // Add event listener for dropdown change
+            dropdown.on("change", function() {
+                var selectedBird = this.value;
+                updateGraphs(selectedBird);
+            });
+
+            // Initial update with the first name in the list
+            updateGraphs(uniqueNames[0]);
+        });
+    </script>
+</body>
+</html>

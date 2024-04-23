@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scatter Plot Map</title>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <style>
+        .dot {
+            fill: steelblue;
+            stroke: black;
+        }
+        .tooltip {
+            position: absolute;
+            text-align: center;
+            width: 120px;
+            height: 50px;
+            padding: 2px;
+            font: 12px sans-serif;
+            background: lightsteelblue;
+            border: 0px;
+            border-radius: 8px;
+            pointer-events: none;
+            opacity: 0;
+        }
+        svg {
+            background-image: url("https://user-images.githubusercontent.com/50171205/59179659-555c2180-8b95-11e9-869a-fe64eb642855.png"); 
+            background-size: 800px 600px;
+            
+        }
+    </style>
+</head>
+<body>
+    <h1>Rose Crested Blue Pipits</h1>
+    <svg width="800" height="600"></svg>
+    <div class="tooltip"></div>
+    <script>
+        const data = [
+        {x:136,y:160,Year:1991},
+        {x:131,y:120,Year:1993},
+        {x:152,y:153,Year:1993},
+        {x:147,y:154,Year:1996},
+        {x:125,y:116,Year:1998},
+        {x:134,y:118,Year:2000},
+        {x:39,y:61,Year:2000},
+        {x:148,y:154,Year:2000},
+        {x:144,y:178,Year:2003},
+        {x:38,y:139,Year:2004},
+        {x:127,y:117,Year:2005},
+        {x:128,y:120,Year:2005},
+        {x:127,y:167,Year:2007},
+        {x:166,y:153,Year:2007},
+        {x:139,y:148,Year:2007},
+        {x:149,y:150,Year:2007},
+        {x:155,y:154,Year:2007},
+        {x:153,y:158,Year:2007},
+        {x:147,y:157,Year:2007},
+        {x:99,y:127,Year:2007},
+        {x:122,y:129,Year:2007},
+        {x:104,y:123,Year:2007},
+        {x:129,y:123,Year:2008},
+        {x:78,y:82,Year:2008},
+        {x:142,y:164,Year:2008},
+        {x:134,y:144,Year:2009},
+        {x:137,y:99,Year:2009},
+        {x:125,y:121,Year:2009},
+        {x:136,y:166,Year:2009},
+        {x:145,y:151,Year:2009},
+        {x:143,y:112,Year:2009},
+        {x:149,y:154,Year:2010},
+        {x:150,y:160,Year:2010},
+        {x:126,y:109,Year:2010},
+        {x:148,y:151,Year:2010},
+        {x:149,y:156,Year:2010},
+        {x:132,y:46,Year:2010},
+        {x:146,y:154,Year:2010},
+        {x:140,y:115,Year:2010},
+        {x:125,y:118,Year:2010},
+        {x:134,y:152,Year:2010},
+        {x:138,y:161,Year:2010},
+        {x:135,y:120,Year:2010},
+        {x:146,y:156,Year:2011},
+        {x:125,y:122,Year:2011},
+        {x:80,y:125,Year:2011},
+        {x:132,y:150,Year:2011},
+        {x:151,y:154,Year:2012},
+        {x:129,y:112,Year:2012},
+        {x:146,y:111,Year:2012},
+        {x:149,y:151,Year:2012},
+        {x:127,y:118,Year:2012},
+        {x:140,y:112,Year:2012},
+        {x:113,y:110,Year:2012},
+        {x:109,y:121,Year:2012},
+        {x:127,y:117,Year:2012},
+        {x:121,y:132,Year:2013},
+        {x:75,y:142,Year:2013},
+        {x:34,y:134,Year:2013},
+        {x:142,y:121,Year:2013},
+        {x:35,y:145,Year:2013},
+        {x:116,y:108,Year:2013},
+        {x:140,y:149,Year:2013},
+        {x:152,y:154,Year:2013},
+        {x:127,y:113,Year:2013},
+        {x:138,y:150,Year:2013},
+        {x:135,y:158,Year:2013},
+        {x:135,y:119,Year:2013},
+        {x:161,y:159,Year:2013},
+        {x:164,y:173,Year:2013},
+        {x:146,y:158,Year:2013},
+        {x:118,y:111,Year:2013},
+        {x:62,y:153,Year:2013},
+        {x:146,y:155,Year:2013},
+        {x:130,y:120,Year:2013},
+        {x:147,y:154,Year:2013},
+        {x:161,y:141,Year:2013},
+        {x:145,y:154,Year:2013},
+        {x:151,y:166,Year:2013},
+        {x:123,y:110,Year:2014},
+        {x:152,y:154,Year:2014},
+        {x:41,y:123,Year:2014},
+        {x:125,y:110,Year:2014},
+        {x:135,y:106,Year:2014},
+        {x:136,y:126,Year:2014},
+        {x:148,y:147,Year:2014},
+        {x:127,y:116,Year:2014},
+        {x:148,y:159,Year:2014},
+        {x:128,y:119,Year:2014},
+        {x:148,y:156,Year:2014},
+        {x:142,y:150,Year:2014},
+        {x:147,y:155,Year:2014},
+        {x:133,y:109,Year:2014},
+        {x:131,y:125,Year:2014},
+        {x:130,y:139,Year:2014},
+        {x:131,y:133,Year:2015},
+        {x:147,y:117,Year:2015},
+        {x:142,y:114,Year:2015},
+        {x:159,y:117,Year:2015},
+        {x:128,y:116,Year:2015},
+        {x:142,y:114,Year:2015},
+        {x:163,y:117,Year:2015},
+        {x:128,y:121,Year:2015},
+        {x:158,y:105,Year:2015},
+        {x:149,y:114,Year:2015},
+        {x:124,y:117,Year:2015},
+        {x:158,y:107,Year:2015},
+        {x:143,y:106,Year:2015},
+        {x:157,y:124,Year:2015},
+        {x:110,y:120,Year:2015},
+        {x:154,y:127,Year:2015},
+        {x:85,y:134,Year:2015},
+        {x:150,y:110,Year:2015},
+        {x:153,y:113,Year:2015},
+        {x:152,y:121,Year:2015},
+        {x:26,y:133,Year:2015},
+        {x:47,y:58,Year:2015},
+        {x:133,y:116,Year:2015},
+        {x:135,y:118,Year:2015},
+        {x:147,y:119,Year:2015},
+        {x:109,y:114,Year:2015},
+        {x:45,y:64,Year:2015},
+        {x:152,y:119,Year:2015},
+        {x:134,y:123,Year:2015},
+        {x:137,y:109,Year:2015},
+        {x:66,y:81,Year:2015},
+        {x:123,y:129,Year:2015},
+        {x:147,y:121,Year:2015},
+        {x:137,y:138,Year:2015},
+        {x:115,y:129,Year:2015},
+        {x:130,y:114,Year:2015},
+        {x:120,y:118,Year:2015},
+        {x:129,y:117,Year:2015},
+        {x:113,y:114,Year:2015},
+        {x:120,y:111,Year:2015},
+        {x:134,y:116,Year:2015},
+        {x:143,y:115,Year:2015},
+        {x:128,y:117,Year:2015},
+        {x:106,y:138,Year:2015},
+        {x:127,y:117,Year:2015},
+        {x:132,y:121,Year:2016},
+        {x:106,y:107,Year:2016},
+        {x:127,y:119,Year:2016},
+        {x:124,y:116,Year:2016},
+        {x:170,y:110,Year:2016},
+        {x:152,y:122,Year:2016},
+        {x:149,y:117,Year:2016},
+        {x:128,y:118,Year:2016},
+        {x:62,y:67,Year:2016},
+        {x:116,y:132,Year:2016},
+        {x:136,y:130,Year:2016},
+        {x:149,y:118,Year:2016},
+        {x:149,y:111,Year:2016},
+        {x:150,y:120,Year:2016},
+        {x:119,y:121,Year:2016},
+        {x:128,y:116,Year:2016},
+        {x:130,y:122,Year:2016},
+        {x:133,y:120,Year:2016},
+        {x:71,y:93,Year:2016},
+        {x:125,y:117,Year:2016},
+        {x:159,y:129,Year:2016},
+        {x:111,y:115,Year:2016},
+        {x:121,y:116,Year:2016},
+        {x:71,y:138,Year:2016},
+        {x:124,y:111,Year:2016},
+        {x:140,y:114,Year:2016},
+        {x:104,y:124,Year:2016},
+        {x:125,y:133,Year:2017},
+        {x:149,y:115,Year:2017},
+        {x:89,y:131,Year:2017},
+        {x:141,y:124,Year:2017},
+        {x:124,y:121,Year:2017},
+        {x:146,y:114,Year:2017},
+        {x:125,y:104,Year:2017},
+        {x:130,y:107,Year:2017},
+        {x:130,y:108,Year:2017},
+        {x:75,y:103,Year:2017},
+        {x:144,y:110,Year:2017},
+        {x:147,y:113,Year:2017},
+        {x:137,y:111,Year:2017},
+        {x:131,y:119,Year:2017},
+        {x:139,y:114,Year:2017},
+        {x:109,y:134,Year:2017},
+        {x:49,y:63,Year:2018},
+        {x:58,y:76,Year:2018},
+        {x:55,y:125,Year:2018},
+
+        ];
+
+        const svg = d3.select("svg");
+        const tooltip = d3.select(".tooltip");
+        const margin = {top: 20, right: 20, bottom: 30, left: 40};
+        const width = +svg.attr("width") - margin.left - margin.right;
+        const height = +svg.attr("height") - margin.top - margin.bottom;
+        const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+
+        const x = d3.scaleLinear()
+            .range([0, width])
+            .domain(d3.extent(data, d => d.x));
+        const y = d3.scaleLinear()
+            .range([height, 0])
+            .domain(d3.extent(data, d => d.y));
+
+        g.append("g")
+            .attr("transform", `translate(0,${height})`)
+            .call(d3.axisBottom(x));
+        g.append("g")
+            .call(d3.axisLeft(y));
+
+        g.selectAll(".dot")
+            .data(data)
+            .enter().append("circle")
+            .attr("class", "dot")
+            .attr("cx", d => x(d.x))
+            .attr("cy", d => y(d.y))
+            .attr("r", 5)
+            .on("mouseover", (event, d) => {
+                tooltip.transition()
+                    .duration(200)
+                    .style("opacity", .9);
+                tooltip.html(`X: ${d.x}<br><br>Y: ${d.y}`)
+                    .style("left", (event.pageX + 10) + "px")
+                    .style("top", (event.pageY - 28) + "px");
+            })
+            .on("mouseout", d => {
+                tooltip.transition()
+                    .duration(500)
+                    .style("opacity", 0);
+            });
+    </script>
+</body>
+</html>

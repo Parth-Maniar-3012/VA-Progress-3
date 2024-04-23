@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pie Chart of Vocalization Types</title>
+    <!-- Include D3.js library -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+
+<body>
+    <h2 style="text-align: center;">Pie Chart of Vocalization Types for "Rose-crested Blue Pipit"</h2>
+    <div id="piechart" style="display: ruby;"></div>
+    <h2 style="text-align: center;">Bar Graph of Vocalization Types for "Rose-crested Blue Pipit"</h2>
+    <div id="bargraph" style="display: ruby;"></div>
+
+    <script>
+        // Read data from CSV file
+
+        d3.csv("AllBirdsv4.csv").then(function (data) {
+            // Create an array of years from 1986 to 2018
+            let years = [];
+            for (let i = 1986; i <= 2018; i++) {
+                years.push(i);
+            }
+            years.reverse();
+            // Process the data for each year
+            years.forEach(year => {
+                // Filter data for the current year and the specific bird  & compare the year as well and data is in the format of 02-08-2018 like this but year is yyyy
+                let filteredYearBirdData = data.filter(bird => bird.English_name === "Rose-crested Blue Pipit" && new Date(bird.Date).getFullYear() == year);
+                // Proceed only if there is data available for the current year and bird
+                if (filteredYearBirdData.length > 0) {
+                    // Calculate vocalization counts for the current year and bird
+                    let vocalizationCounts = {
+                        Song: filteredYearBirdData.filter(bird => bird.Vocalization_type === "Song").length,
+                        Call: filteredYearBirdData.filter(bird => bird.Vocalization_type === "call").length,
+                        both: filteredYearBirdData.filter(bird => bird.Vocalization_type !== "call" && bird.Vocalization_type !== "Song").length
+                    };
+
+                    // Create pie chart data for the current year and bird
+                    let pieChartData = Object.entries(vocalizationCounts).map(([type, count]) => ({ label: type, value: count }));
+
+                    // Create SVG element for the pie chart
+                    const width = 400;
+                    const height = 400;
+                    const radius = Math.min(width, height) / 2;
+
+                    const color = d3.scaleOrdinal(d3.schemeCategory10);
+
+                    const svg = d3.select("#piechart")
+                        .append("svg")
+                        .attr("width", width)
+                        .attr("height", height)
+                        .style("padding", "10px")
+                        .append("g")
+                        .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+
+                    const pie = d3.pie()
+                        .value(d => d.value);
+
+                    const arc = d3.arc()
+                        .innerRadius(0)
+                        .outerRadius(radius);
+
+                    const arcs = svg.selectAll("arc")
+                        .data(pie(pieChartData))
+                        .enter()
+                        .append("g")
+                        .attr("class", "arc");
+
+                    arcs.append("path")
+                        .attr("d", arc)
+                        .attr("fill", (d, i) => color(i))
+                        .on("mouseover", function (event, d) {
+                            // Show tooltip
+                            d3.select("#tooltip")
+                                .style("display", "block")
+                                .html(d.data.label + " (" + d.data.value + ")")
+                        })
+                        .on("mouseout", function () {
+                            // Hide tooltip
+                            d3.select("#tooltip")
+                                .style("display", "none");
+                        });
+
+                    arcs.append("text")
+                        .attr("transform", function (d) { return "translate(" + arc.centroid(d) + ")"; })
+                        .attr("text-anchor", "middle")
+                        .text(d => d.data.label + " (" + d.data.value + ")");
+
+
+                    // add chart heading 
+                    svg.append("text")
+                        .attr("x", 0)
+                        .attr("y", 200)
+                        .attr("text-anchor", "middle")
+                        .text(year);
+
+                }
+            });
+        });
+
+        // BAR GRAPH
+        d3.csv("AllBirdsv4.csv").then(function (data) {
+
+            let years = [];
+            for (let i = 1986; i <= 2018; i++) {
+                years.push(i);
+            }
+            years.reverse();
+            // Filter data for the current year and the specific bird   
+            years.map((item) => {
+                let filteredYearBirdQuantityData = data.filter(bird => bird.English_name === "Rose-crested Blue Pipit" && new Date(bird.Date).getFullYear() == item);
+
+                if (filteredYearBirdQuantityData.length > 0) {
+                    let vocolizationQuality = {
+                        A: filteredYearBirdQuantityData.filter(bird => bird.Quality === "A").length,
+                        B: filteredYearBirdQuantityData.filter(bird => bird.Quality === "B").length,
+                        C: filteredYearBirdQuantityData.filter(bird => bird.Quality === "C").length,
+                        D: filteredYearBirdQuantityData.filter(bird => bird.Quality === "D").length,
+                        E: filteredYearBirdQuantityData.filter(bird => bird.Quality === "E").length
+                    }
+                    // create a bar graph for the quality of the vocalization for the respective years and bird
+                    let barGraphData = Object.entries(vocolizationQuality).map(([quality, count]) => ({ label: quality, value: count }));
+                    // Assuming 'data' is an array of objects with 'label' and 'value' properties
+                    let margin = { top: 20, right: 20, bottom: 40, left: 50 };
+                    let width = 600 - margin.left - margin.right;
+                    let height = 400 - margin.top - margin.bottom;
+
+                    let svg = d3.select("#bargraph")
+                        .append("svg")
+                        .attr("width", width + margin.left + margin.right)
+                        .attr("height", height + margin.top + margin.bottom)
+                        .style("padding", "50px")
+                        .append("g")
+                        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+                    let x = d3.scaleBand()
+                        .rangeRound([0, width])
+                        .paddingInner(0.1);
+
+                    let y = d3.scaleLinear()
+                        .rangeRound([height, 0])
+
+                    let color = d3.scaleOrdinal(d3.schemeCategory10);
+
+                    x.domain(barGraphData.map(function (d) { return d.label; }));
+                    y.domain([0, d3.max(barGraphData, function (d) { return d.value; })]);
+
+                    svg.append("g")
+                        .attr("class", "axis")
+                        .attr("transform", "translate(0," + height + ")")
+                        .call(d3.axisBottom(x));
+
+                    svg.append("g")
+                        .attr("class", "axis")
+                        .call(d3.axisLeft(y).ticks(null, ""))
+                        .append("text")
+                        .attr("x", 2)
+                        .attr("y", y(y.ticks().pop()) + 1)
+                        .attr("dy", "0.32em")
+                        .attr("fill", "#000");
+
+                    svg.append('g')
+                        .attr('class', 'grid')
+                        .call(d3.axisLeft()
+                            .scale(y)
+                            .tickSize(-width, 0, 0)
+                            .tickFormat(''))
+
+
+                    svg.append("text")
+                        .attr("text-anchor", "end")
+                        .attr("transform", "rotate(-90)")
+                        .attr("y", -margin.left + 20)
+                        .attr("x", -margin.top)
+                        .text("Count");
+
+
+                    svg.append("text")
+                        .attr("text-anchor", "end")
+                        .attr("x", width)
+                        .attr("y", height + margin.top + 10)
+                        .text("Quality");
+
+                    svg.selectAll(".bar")
+                        .data(barGraphData)
+                        .enter().append("rect")
+                        .attr("class", "bar")
+                        .attr("x", function (d) { return x(d.label); })
+                        .attr("y", function (d) { return y(d.value); })
+                        .attr("width", x.bandwidth())
+                        .attr("height", function (d) { return height - y(d.value); })
+                        .attr("fill", function (d) { return color(d.label); })
+
+                    svg.append("text")
+                        .attr("x", width / 2)
+                        .attr("y", -margin.top / 2)
+                        .attr("text-anchor", "middle")
+                        .style("font-size", "16px")
+                        .style("font-weight", "bold")
+                        .text("Vocalization Quality for " + item);
+                }
+            })
+        }
+        )
+
+
+    </script>
+</body>
+
+</html>
